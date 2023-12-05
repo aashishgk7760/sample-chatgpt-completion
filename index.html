@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>GPT ChatAPI Model</title>
+    <link rel="stylesheet" href="./style.css">
+    <link rel="icon" href="./favicon.ico" type="image/x-icon">
+</head>
+<body>
+    <main>
+        <h1>CHATGPT4 API</h1>  
+        <form action="">
+            <input type="text" name="message" id="message">
+            <button type="submit">Send</button>
+        </form>
+        <div id="chat-log"></div>
+    </main>
+    <script>
+        const chatlog = document.getElementById('chat-log');
+        const message = document.getElementById('message');
+        const form = document.querySelector('form');
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const messageText = message.value;
+            message.value = '';
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message');
+            messageElement.classList.add('message--sent');
+            messageElement.innerHTML = `<div class="message__text">${messageText}</div>`;
+            chatlog.appendChild(messageElement);
+            chatlog.scrollTop = chatlog.scrollHeight;
+
+            fetch('http://localhost:3000', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: messageText })
+            })
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+                return res.json();
+            })
+            .then(data => {
+                console.log("Full server response:", data); // Detailed logging of the server response
+
+                // Adjusted to match the structure of your response
+                let responseText = typeof data.message === 'string' 
+                                   ? data.message 
+                                   : 'Response not formatted correctly';
+
+                const messageElement = document.createElement('div');
+                messageElement.classList.add('message');
+                messageElement.classList.add('message--received');
+                messageElement.innerHTML = `<div class="message__text">${responseText}</div>`;
+                chatlog.appendChild(messageElement);
+                chatlog.scrollTop = chatlog.scrollHeight;
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+                const errorElement = document.createElement('div');
+                errorElement.classList.add('error-message');
+                errorElement.textContent = `Error: ${error.message}`;
+                chatlog.appendChild(errorElement);
+            });
+        });
+    </script>
+</body>
+</html>
